@@ -1,0 +1,325 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  body {
+    @apply bg-darkBg text-slate-100 font-sans antialiased overflow-x-hidden;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #09070F;
+}
+::-webkit-scrollbar-thumb {
+  background: #1C1824;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A855F7;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(19, 15, 31, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.glass-nav {
+  background: rgba(9, 7, 15, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.glass-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-hover:hover {
+  background: rgba(19, 15, 31, 0.7);
+  border-color: rgba(168, 85, 247, 0.3);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 0 0 15px rgba(168, 85, 247, 0.05);
+}
+
+/* Text glow effects */
+.text-glow-purple {
+  text-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+}
+.text-glow-pink {
+  text-shadow: 0 0 15px rgba(236, 72, 153, 0.6);
+}
+
+/* Dynamic background gradient mesh */
+.bg-grid-mesh {
+  background-size: 45px 45px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+}
+
+.radial-spotlight {
+  background: radial-gradient(circle 800px at 50% -200px, rgba(168, 85, 247, 0.08), transparent 80%);
+}
+
+/* Typing cursor cursor */
+@keyframes blink {
+  50% { border-color: transparent; }
+}
+.typing-cursor {
+  border-right: 3px solid #A855F7;
+  animation: blink 0.75s step-end infinite;
+}
+
+/* Background glows */
+.glow-bg-left {
+  background: radial-gradient(circle 250px at 20% 50%, rgba(168, 85, 247, 0.12), transparent 80%);
+}
+.glow-bg-right {
+  background: radial-gradient(circle 300px at 80% 40%, rgba(124, 58, 237, 0.15), transparent 80%);
+}
+
+/* Heartbeat throbbing animation for background "HI" text */
+:root {
+  --hi-stroke-color: rgba(255, 255, 255, 0.025);
+}
+
+.light {
+  --hi-stroke-color: rgba(139, 92, 246, 0.45);
+}
+
+@keyframes rotate-in {
+  from {
+    transform: rotate(-180deg) scale(0.3);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+.theme-animate {
+  animation: rotate-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.theme-toggle-btn {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.theme-toggle-btn:active {
+  transform: scale(0.85);
+}
+
+@keyframes heartbeat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  14% {
+    transform: scale(1.06);
+    opacity: 0.65;
+  }
+  28% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  42% {
+    transform: scale(1.06);
+    opacity: 0.65;
+  }
+  70% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+}
+
+.heartbeat-hi {
+  animation: heartbeat 2.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Light theme overrides for custom global items */
+html.light body,
+html.light .bg-darkBg,
+html.light .bg-\[\#06030F\],
+html.light .bg-\[\#07050B\],
+html.light .bg-\[\#09070F\],
+html.light .bg-\[\#090514\] {
+  background-color: #ffffff !important;
+  color: #1b124b !important;
+}
+
+html.light .glass {
+  background: rgba(255, 255, 255, 0.75) !important;
+  border-color: rgba(27, 18, 75, 0.08) !important;
+  color: #1b124b !important;
+}
+
+html.light .glass-nav {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-bottom: 1px solid rgba(27, 18, 75, 0.08) !important;
+}
+
+html.light .glass-hover:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(168, 85, 247, 0.3) !important;
+  box-shadow: 0 10px 30px -10px rgba(27, 18, 75, 0.08), 0 0 15px rgba(168, 85, 247, 0.03) !important;
+}
+
+html.light .bg-grid-mesh {
+  background-image: 
+    linear-gradient(to right, rgba(27, 18, 75, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(27, 18, 75, 0.03) 1px, transparent 1px) !important;
+}
+
+/* Ensure cards and boxes inside services, shop, blog, gallery are styled light */
+html.light .bg-\[\#120F1F\],
+html.light .bg-\[\#130F1F\],
+html.light .bg-\[\#120F1F\]\/60,
+html.light .bg-\[\#181524\],
+html.light .bg-\[\#1C182A\],
+html.light .bg-slate-900\/50,
+html.light .bg-slate-950\/80 {
+  background-color: #f8fafc !important;
+  border-color: rgba(27, 18, 75, 0.08) !important;
+  color: #1b124b !important;
+}
+
+/* Ensure all text-white and text-slate-300/400 colors turn dark in light mode,
+   except when they are inside solid gradient/purple buttons or badges */
+html.light .text-white {
+  color: #1b124b !important;
+}
+
+html.light .text-slate-300,
+html.light .text-slate-400,
+html.light .text-slate-500,
+html.light .text-slate-450 {
+  color: #4b5563 !important;
+}
+
+/* Prevent transparent text elements (like gradients) from having solid color */
+html.light .text-transparent {
+  color: transparent !important;
+}
+
+/* Retain white text inside specific solid gradient buttons and active elements */
+html.light .bg-gradient-to-r:not(.bg-clip-text),
+html.light .bg-gradient-to-tr:not(.bg-clip-text),
+html.light .bg-cyberPurple:not(.bg-clip-text),
+html.light .bg-purple-600:not(.bg-clip-text),
+html.light .bg-purple-500:not(.bg-clip-text),
+html.light .bg-gradient-to-r:not(.bg-clip-text) *,
+html.light .bg-gradient-to-tr:not(.bg-clip-text) *,
+html.light .bg-cyberPurple:not(.bg-clip-text) *,
+html.light .bg-purple-600:not(.bg-clip-text) *,
+html.light .bg-purple-500:not(.bg-clip-text) * {
+  color: #ffffff !important;
+}
+
+/* Navbar light styling overrides */
+html.light nav a {
+  color: #1b124b !important;
+}
+
+html.light nav a:hover {
+  color: #8b5cf6 !important;
+}
+
+html.light nav span {
+  color: #1b124b !important;
+}
+
+html.light nav span:hover {
+  color: #8b5cf6 !important;
+}
+
+html.light nav .active {
+  color: #8b5cf6 !important;
+  border-bottom-color: #8b5cf6 !important;
+}
+
+html.light nav .border-white {
+  border-color: #1b124b !important;
+}
+
+html.light nav svg {
+  fill: #1b124b !important;
+}
+
+html.light nav button svg {
+  color: #1b124b !important;
+  fill: none !important;
+}
+
+/* Scroll Reveal Float-In Animation */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(45px) scale(0.98);
+  transition: opacity 1.3s cubic-bezier(0.215, 0.61, 0.355, 1), transform 1.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+  will-change: transform, opacity;
+}
+
+.scroll-reveal.reveal-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* 3D Project Card Scroll Reveal (Left to Right Y-Axis Rotation) */
+.project-card-reveal {
+  opacity: 0;
+  transform: translateY(60px) rotateY(-18deg) scale(0.96);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transition: opacity 1.8s cubic-bezier(0.16, 1, 0.3, 1), transform 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.project-card-reveal.reveal-active {
+  opacity: 1;
+  transform: translateY(0) rotateY(0deg) scale(1);
+}
+
+/* Fly-in Up scroll animation (down to up) */
+.fly-in-up {
+  opacity: 0;
+  transform: translateY(70px);
+  transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.fly-in-up.reveal-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Skills fly-in from Left scroll animation */
+.skill-fly-left {
+  opacity: 0;
+  transform: translateX(-70px);
+  transition: opacity 1.3s cubic-bezier(0.16, 1, 0.3, 1), transform 1.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.skill-fly-left.reveal-active {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Skills fly-in from Right scroll animation */
+.skill-fly-right {
+  opacity: 0;
+  transform: translateX(70px);
+  transition: opacity 1.3s cubic-bezier(0.16, 1, 0.3, 1), transform 1.3s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.skill-fly-right.reveal-active {
+  opacity: 1;
+  transform: translateX(0);
+}
