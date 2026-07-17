@@ -7,8 +7,7 @@ import avatarImg from '../assets/avatar_portrait.jpg';
 import projectMockup1 from '../assets/project_mockup_1.png';
 import projectMockup2 from '../assets/project_mockup_2.png';
 import blogCover1 from '../assets/blog_cover_1.png';
-import blogCover2 from '../assets/blog_cover_2.png';
-import blogCover3 from '../assets/blog_cover_3.png';
+import { API_URL } from '../config/api';
 
 export default function Home() {
   const [activeFilter, setActiveFilter] = useState('All');
@@ -175,46 +174,32 @@ export default function Home() {
     { name: 'Git & GitHub', percent: '80%', icon: <FaGitAlt className="w-12 h-12 text-[#F05032] group-hover:scale-110 transition-transform duration-300" /> }
   ];
 
-  // Load recent blogs from localStorage if exists, else use defaults
-  const recentBlogs = (() => {
-    const saved = localStorage.getItem('blogs');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed
-        .filter((b: any) => b.status === 'Published')
-        .slice(0, 3)
-        .map((b: any) => ({
-          id: b.id,
-          tag: b.category.toUpperCase(),
-          date: b.date,
-          title: b.title,
-          img: b.img || blogCover1
-        }));
-    }
-    return [
-      {
-        id: 'building-readifyai',
-        tag: 'NEXT JS',
-        date: 'June 22, 2024',
-        title: 'Building a Blog With Nex...',
-        img: blogCover1
-      },
-      {
-        id: 'placement-prep-journey',
-        tag: 'NEXT JS',
-        date: 'June 22, 2024',
-        title: 'Next.js 14.2',
-        img: blogCover2
-      },
-      {
-        id: 'react-three-fiber-ux',
-        tag: 'REACT JS',
-        date: 'June 22, 2024',
-        title: 'Next.js 15 RC',
-        img: blogCover3
+  const [recentBlogs, setRecentBlogs] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchRecentBlogs = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/blogs`);
+        if (response.ok) {
+          const data = await response.json();
+          const mapped = data
+            .filter((b: any) => b.status === 'Published')
+            .slice(0, 3)
+            .map((b: any) => ({
+              id: b.slug || b._id,
+              tag: b.category.toUpperCase(),
+              date: new Date(b.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+              title: b.title,
+              img: b.coverImage || blogCover1
+            }));
+          setRecentBlogs(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to fetch recent blogs:', err);
       }
-    ];
-  })();
+    };
+    fetchRecentBlogs();
+  }, []);
 
   return (
     <div className="radial-spotlight bg-grid-mesh min-h-screen pt-20">

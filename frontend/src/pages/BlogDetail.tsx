@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Calendar, Eye, Search, Copy, Check } from 'lucide-react';
+import { API_URL } from '../config/api';
 import { FaFacebookF, FaTwitter, FaWhatsapp, FaLinkedinIn } from 'react-icons/fa';
 import blogCover1 from '../assets/blog_cover_1.png';
 import blogCover2 from '../assets/blog_cover_2.png';
@@ -201,19 +202,32 @@ export default function BlogDetail() {
     localStorage.setItem('blogComments', JSON.stringify(commentsList));
   }, [commentsList]);
 
+  const [allBlogs, setAllBlogs] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/blogs`);
+        if (response.ok) {
+          const data = await response.json();
+          setAllBlogs(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch blogs:', err);
+      }
+    };
+    fetchBlogs();
+  }, []);
+
   const recentSidebarPosts: SidebarRecentPost[] = (() => {
-    const saved = localStorage.getItem('blogs');
-    if (saved) {
-      const parsed = JSON.parse(saved) as any[];
-      return parsed
-        .filter(b => b.status === 'Published')
-        .slice(0, 3)
-        .map(b => ({
-          id: b.id,
-          title: b.title,
-          img: b.img || blogCover1,
-          tags: b.tags || []
-        }));
+    const published = allBlogs.filter((b: any) => b.status === 'Published');
+    if (published.length > 0) {
+      return published.slice(0, 3).map((b: any) => ({
+        id: b.slug || b._id,
+        title: b.title,
+        img: b.coverImage || blogCover1,
+        tags: b.tags || []
+      }));
     }
     return [
       {
@@ -238,25 +252,19 @@ export default function BlogDetail() {
   })();
 
   const categories = (() => {
-    const saved = localStorage.getItem('blogs');
-    const blogsData = saved ? JSON.parse(saved) as any[] : [
-      { category: 'Next Js', status: 'Published' },
-      { category: 'Next Js', status: 'Published' },
-      { category: 'React Js', status: 'Published' },
-      { category: 'Next Js', status: 'Published' },
-      { category: 'Node Js', status: 'Published' },
-      { category: 'Css', status: 'Published' },
-      { category: 'React Js', status: 'Published' },
-      { category: 'Next Js', status: 'Published' }
-    ];
-
     const counts: Record<string, number> = {};
-    blogsData.forEach(b => {
-      if (b.status === 'Published') {
+    const published = allBlogs.filter((b: any) => b.status === 'Published');
+    if (published.length > 0) {
+      published.forEach(b => {
         const catName = b.category || 'Other';
         counts[catName] = (counts[catName] || 0) + 1;
-      }
-    });
+      });
+    } else {
+      counts['Next Js'] = 5;
+      counts['React Js'] = 2;
+      counts['Node Js'] = 1;
+      counts['Css'] = 1;
+    }
 
     return [
       { name: 'Next Js', count: counts['Next Js'] || 0 },
@@ -630,26 +638,24 @@ const doSomething = () => {
   const article = (() => {
     if (!id) return null;
     
-    // 1. Try local storage first (allows dynamic blog viewing)
-    const saved = localStorage.getItem('blogs');
-    if (saved) {
-      const parsed = JSON.parse(saved) as any[];
-      const found = parsed.find(b => b.id === id || b.slug === id);
-      if (found) {
-        return {
-          title: found.title,
-          category: found.category.toUpperCase(),
-          date: found.date,
-          comments: `Comments (${commentsList[id]?.length || 0})`,
-          img: found.img || blogCover1,
-          tags: found.tags || [],
-          contentHtml: (
-            <div className="space-y-4 text-slate-300 leading-relaxed font-sans text-left">
-              {parseMarkdownToJSX(found.content, copiedCode, setCopiedCode)}
-            </div>
-          )
-        };
-      }
+    // 1. Try dynamic blogs fetched from API first
+    const found = allBlogs.find(b => b._id === id || b.slug === id || b.id === id);
+    if (found) {
+      return {
+        title: found.title,
+        category: (found.category || 'Other').toUpperCase(),
+        date: found.createdAt
+          ? new Date(found.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+          : (found.date || 'June 22, 2024'),
+        comments: `Comments (${commentsList[id]?.length || 0})`,
+        img: found.coverImage || found.img || blogCover1,
+        tags: found.tags || [],
+        contentHtml: (
+          <div className="space-y-4 text-slate-300 leading-relaxed font-sans text-left">
+            {parseMarkdownToJSX(found.content, copiedCode, setCopiedCode)}
+          </div>
+        )
+      };
     }
 
     // 2. Try hardcoded dictionary

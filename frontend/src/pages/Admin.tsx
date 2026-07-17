@@ -32,11 +32,11 @@ import {
 } from 'lucide-react';
 import blogCover1 from '../assets/blog_cover_1.png';
 import blogCover2 from '../assets/blog_cover_2.png';
-import blogCover3 from '../assets/blog_cover_3.png';
 import projectMockup1 from '../assets/project_mockup_1.png';
 import projectMockup2 from '../assets/project_mockup_2.png';
-import gallery3 from '../assets/gallery_3.png';
 import avatarPortrait from '../assets/avatar_portrait.jpg';
+import { API_URL } from '../config/api';
+import { adminFetch } from '../utils/adminFetch';
 
 interface BlogPost {
   id: string;
@@ -93,12 +93,128 @@ interface ContactMessage {
 }
 
 export default function Admin() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('adminToken'));
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [email, setEmail] = useState('prabhatyadav.dbg@gmail.com');
-  const [password, setPassword] = useState('prabhat');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isAdminDark, setIsAdminDark] = useState(() => localStorage.getItem('adminTheme') === 'dark');
+
+  // Dashboard Stats & Lists API Fetchers
+  const fetchBlogs = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/blogs`);
+      if (response.ok) {
+        const data = await response.json();
+        const mapped = data.map((doc: any) => ({
+          id: doc._id,
+          title: doc.title,
+          slug: doc.slug,
+          category: doc.category,
+          tags: doc.tags || [],
+          status: doc.status,
+          date: new Date(doc.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          img: doc.coverImage || blogCover1,
+          content: doc.content
+        }));
+        setBlogs(mapped);
+      }
+    } catch (err) {
+      console.error('Failed to fetch blogs:', err);
+    }
+  };
+
+  const fetchProjects = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/projects`);
+      if (response.ok) {
+        const data = await response.json();
+        const mapped = data.map((doc: any) => ({
+          id: doc._id,
+          title: doc.title,
+          slug: doc.slug,
+          category: doc.techStack?.[0] || 'Website',
+          tags: doc.techStack || [],
+          status: doc.status || 'Published',
+          date: new Date(doc.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          img: doc.image || projectMockup1,
+          content: doc.description
+        }));
+        setProjects(mapped);
+      }
+    } catch (err) {
+      console.error('Failed to fetch projects:', err);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/products`);
+      if (response.ok) {
+        const data = await response.json();
+        const mapped = data.map((doc: any) => ({
+          id: doc._id,
+          title: doc.title,
+          slug: doc.slug,
+          price: doc.price,
+          afilateLink: 'https://amazon.com',
+          tags: [doc.category],
+          status: doc.status || 'Published',
+          date: new Date(doc.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          img: doc.images?.[0] || projectMockup1,
+          content: doc.description
+        }));
+        setShopProducts(mapped);
+      }
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+    }
+  };
+
+  const fetchContacts = async () => {
+    try {
+      const response = await adminFetch('/api/contact');
+      if (response.ok) {
+        const data = await response.json();
+        const mapped = data.map((doc: any) => ({
+          id: doc._id,
+          firstName: doc.firstName,
+          lastName: doc.lastName || '',
+          email: doc.email,
+          phoneNo: '123456789',
+          project: 'General Inquiry',
+          message: doc.message
+        }));
+        setContacts(mapped);
+      }
+    } catch (err) {
+      console.error('Failed to fetch contacts:', err);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchBlogs();
+      fetchProjects();
+      fetchProducts();
+      fetchContacts();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    const handleLogoutEvent = () => {
+      setIsAuthenticated(false);
+    };
+    window.addEventListener('admin-logout', handleLogoutEvent);
+    return () => window.removeEventListener('admin-logout', handleLogoutEvent);
+  }, []);
 
   // Sidebar Layout Navigation state
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -174,222 +290,15 @@ export default function Admin() {
   const [editProdImg, setEditProdImg] = useState(projectMockup2);
 
   // Contacts State
-  const [contacts] = useState<ContactMessage[]>([
-    {
-      id: '1',
-      firstName: 'vbmcoder',
-      lastName: '',
-      email: 'vbmcoder@gmail.com',
-      phoneNo: '123456789',
-      project: 'Website Development',
-      message: 'Hello, I want to build a portfolio website matching our custom UI mockup.'
-    },
-    {
-      id: '2',
-      firstName: 'demo test',
-      lastName: '',
-      email: 'test@gmail.com',
-      phoneNo: '1232418468',
-      project: 'Website Development',
-      message: 'Testing form submission for admin dashboard contact review.'
-    },
-    {
-      id: '3',
-      firstName: 'codermak',
-      lastName: '',
-      email: 'vbmcoder@gmail.com',
-      phoneNo: '123456789',
-      project: 'Website Development',
-      message: 'I want to build a mobile application using React Native.'
-    },
-    {
-      id: '4',
-      firstName: 'vaibhav',
-      lastName: '',
-      email: 'coder@gmail.com',
-      phoneNo: '123456789',
-      project: 'Website Development',
-      message: 'Let us discuss database triggers and backend settings.'
-    }
-  ]);
+  const [contacts, setContacts] = useState<ContactMessage[]>([]);
   const [contactSearchQuery, setContactSearchQuery] = useState('');
   const [selectedContact, setSelectedContact] = useState<ContactMessage | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
 
   // Dashboard Stats & Lists memory
-  const [blogs, setBlogs] = useState<BlogPost[]>(() => {
-    const saved = localStorage.getItem('blogs');
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: '1',
-        title: 'Building a Blog With Next.js and MDX',
-        slug: 'Building-a-Blog-With-Next.js-and-MDX',
-        category: 'Next Js',
-        tags: ['javascript', 'nextjs', 'react'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: blogCover1,
-        content: `Next.js has become one of the most popular React frameworks of today. Coupled with its ease of setup, the out-of-the-box features and optimizations it brings to the table will leave you wondering why you've been building React apps any other way.
-
-One of the major advantages of Next.js is its ability to create both Static Site Generated (SSG) and Server Side Rendered (SSR) apps, which are good for SEO. SSG means that the HTML pages, along with their styling, are generated during build time, whereas with SSR the HTML is generated on the server and sent to the client when a page request is made.
-
-Many companies, including TikTok, Netflix, and Twitch, are already using Next.js to build large applications. In this article, we're going to learn how to use Next.js and Markdown to build a blog. We'll also learn how to work with MDX, a library for writing JSX and React components inside Markdown files.
-
-## What we'll be building
-Next.js has become one of the most popular React frameworks of today. Coupled with its ease of setup, the out-of-the-box features and optimizations it brings to the table will leave you wondering why you've been building React apps any other way.`
-      },
-      {
-        id: '2',
-        title: 'Next.js 14.2',
-        slug: 'Next.js-14.2',
-        category: 'Next Js',
-        tags: ['nextjs'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: blogCover2,
-        content: `Next.js 14.2 is here, bringing significant updates for developer experience, build performance, and stability. In this log, we'll unpack the primary features introduced.`
-      },
-      {
-        id: '3',
-        title: 'Next.js 15 RC',
-        slug: 'Next.js-15-RC',
-        category: 'React Js',
-        tags: ['nextjs', 'react'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: blogCover3,
-        content: `Next.js 15 Release Candidate introduces experimental support for the new React Compiler, async request APIs, and caching updates. Let's trace how these enhancements improve render speeds.`
-      },
-      {
-        id: '4',
-        title: 'A Step-by-Step Guide to Building a Simple Next.js 13 Blog',
-        slug: 'A-Step-by-Step-Guide-to-Building-a-Simple-Next.js-13-Blog',
-        category: 'Next Js',
-        tags: ['nextjs'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: projectMockup1,
-        content: 'Learn how to configure Next.js 13 static pages with automatic static export and dynamic routing parameters.'
-      },
-      {
-        id: '5',
-        title: 'Mobile number login sign up',
-        slug: 'Mobile-number-login-sign-up',
-        category: 'Node Js',
-        tags: ['nodejs', 'javascript'],
-        status: 'Draft',
-        date: 'June 22, 2024',
-        img: projectMockup2,
-        content: 'Configure authentication and OTP validation screens utilizing Node.js Express route endpoints.'
-      },
-      {
-        id: '6',
-        title: 'Crafting Engaging CSS Animations step by step guide',
-        slug: 'Crafting-Engaging-CSS-Animations-step-by-step-guide',
-        category: 'Css',
-        tags: ['css'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: gallery3,
-        content: 'Explore smooth CSS timing curves, keyframe rules, and active hover triggers step by step.'
-      },
-      {
-        id: '7',
-        title: 'State Management in React 19 Explored',
-        slug: 'State-Management-in-React-19-Explored',
-        category: 'React Js',
-        tags: ['react', 'javascript'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: blogCover1,
-        content: 'Explore the new use() hook and compiler updates in the upcoming React 19 release.'
-      },
-      {
-        id: '8',
-        title: 'Scaling Express.js APIs with Redis Cache mechanisms',
-        slug: 'Scaling-Express-js-APIs-with-Redis-Cache-mechanisms',
-        category: 'Node Js',
-        tags: ['nodejs', 'redis'],
-        status: 'Draft',
-        date: 'June 22, 2024',
-        img: projectMockup1,
-        content: 'Implement memory-caching parameters to accelerate API requests and bypass datastore operations.'
-      }
-    ];
-  });
-
-  const [projects, setProjects] = useState<ProjectPost[]>(() => {
-    const saved = localStorage.getItem('projects');
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: '1',
-        title: 'Personal Portfolio Website',
-        slug: 'Personal-Portfolio-Website',
-        category: 'Website',
-        tags: ['react', 'css', 'javascript'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: projectMockup1,
-        content: 'A high-fidelity developer portfolio built with React and custom styling animations.'
-      },
-      {
-        id: '2',
-        title: 'E-Commerce Admin Dashboard',
-        slug: 'E-Commerce-Admin-Dashboard',
-        category: 'Apps',
-        tags: ['html', 'css', 'javascript'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: projectMockup2,
-        content: 'An absolute admin dashboard managing published shop products list.'
-      }
-    ];
-  });
-
-  const [shopProducts, setShopProducts] = useState<AdminProductItem[]>(() => {
-    const saved = localStorage.getItem('shopProducts');
-    if (saved) return JSON.parse(saved);
-    return [
-      {
-        id: '1',
-        title: 'USB C Adepter for MacBook pro 2022 2021 2020',
-        slug: 'USB-C-Adepter-for-MacBook-pro-2022-2021-2020',
-        price: '₹1029.00',
-        afilateLink: 'https://amazon.com',
-        tags: ['DESK', 'CONTENT CREATORS'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: projectMockup1,
-        content: 'Features premium ports and 100W Power Delivery output parameters.'
-      },
-      {
-        id: '2',
-        title: 'USB C Adepter for MacBook pro 2022 2021 2020',
-        slug: 'USB-C-Adepter-for-MacBook-pro-2022-2021-2020-two',
-        price: '₹1089.00',
-        afilateLink: 'https://amazon.com',
-        tags: ['GIMBAL'],
-        status: 'Published',
-        date: 'June 22, 2024',
-        img: projectMockup2,
-        content: 'Stunning audio fidelity configurations built with smart active sound response.'
-      },
-      {
-        id: '3',
-        title: 'USB C Adepter for MacBook pro 2022 2021 2020',
-        slug: 'USB-C-Adepter-for-MacBook-pro-2022-2021-2020-three',
-        price: '₹1049.00',
-        afilateLink: 'https://amazon.com',
-        tags: ['STANDING DESK'],
-        status: 'Draft',
-        date: 'June 22, 2024',
-        img: gallery3,
-        content: 'Custom height indicators with smooth active lift triggers.'
-      }
-    ];
-  });
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [projects, setProjects] = useState<ProjectPost[]>([]);
+  const [shopProducts, setShopProducts] = useState<AdminProductItem[]>([]);
 
   const [galleryPhotos, setGalleryPhotos] = useState<AdminPhotoItem[]>(() => {
     const saved = localStorage.getItem('galleryPhotos');
@@ -404,18 +313,6 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
   useEffect(() => {
     localStorage.setItem('adminTheme', isAdminDark ? 'dark' : 'light');
   }, [isAdminDark]);
-
-  useEffect(() => {
-    localStorage.setItem('blogs', JSON.stringify(blogs));
-  }, [blogs]);
-
-  useEffect(() => {
-    localStorage.setItem('projects', JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem('shopProducts', JSON.stringify(shopProducts));
-  }, [shopProducts]);
 
   useEffect(() => {
     localStorage.setItem('galleryPhotos', JSON.stringify(galleryPhotos));
@@ -546,78 +443,110 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
     }
   }, [editProjTitle, activeMenu]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email === 'prabhatyadav.dbg@gmail.com' && password === 'prabhat') {
-      setLoginError('');
-      setIsLoggingIn(true);
-      setTimeout(() => {
-        setIsLoggingIn(false);
+    setLoginError('');
+    setIsLoggingIn(true);
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.token) {
+        localStorage.setItem('adminToken', data.token);
         setIsAuthenticated(true);
-      }, 1500);
-    } else {
-      setLoginError('Invalid email or password. Please use credentials below.');
+      } else {
+        setLoginError(data.message || data.error || 'Invalid credentials. Please try again.');
+      }
+    } catch (err: any) {
+      setLoginError('Network error. Failed to connect to server.');
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
   // Add Blog Form Handler
-  const handleSaveBlogAdd = (e: React.FormEvent) => {
+  const handleSaveBlogAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addTitle.trim()) return;
 
-    const item: BlogPost = {
-      id: Date.now().toString(),
+    const payload = {
       title: addTitle,
       slug: addSlug || addTitle.trim().replace(/\s+/g, '-').replace(/[^\w-.]/g, ''),
       category: addCategory === 'Other' ? (customCategoryAdd.trim() || 'Other') : (addCategory || 'Next Js'),
       tags: addTags.length > 0 ? addTags : ['javascript'],
       status: addStatus === 'Draft' ? 'Draft' : 'Published',
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      img: addImg,
+      coverImage: addImg,
       content: addContent || 'This is a newly created blog post.'
     };
 
-    setBlogs(prev => [item, ...prev]);
-    
-    // Reset Form Fields
-    setAddTitle('');
-    setAddSlug('');
-    setAddCategory('');
-    setCustomCategoryAdd('');
-    setAddContent('');
-    setAddTags([]);
-    setAddStatus('No Select');
-
-    setActiveMenu('all-blogs');
+    try {
+      const response = await adminFetch('/api/blogs', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        await fetchBlogs();
+        // Reset Form Fields
+        setAddTitle('');
+        setAddSlug('');
+        setAddCategory('');
+        setCustomCategoryAdd('');
+        setAddContent('');
+        setAddTags([]);
+        setAddStatus('No Select');
+        setActiveMenu('all-blogs');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to create blog post');
+      }
+    } catch (err) {
+      console.error('Failed to create blog:', err);
+    }
   };
 
-  const handleSaveProjectAdd = (e: React.FormEvent) => {
+  const handleSaveProjectAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addProjTitle.trim()) return;
 
-    const item: ProjectPost = {
-      id: Date.now().toString(),
+    const payload = {
       title: addProjTitle,
       slug: addProjSlug || addProjTitle.trim().replace(/\s+/g, '-').replace(/[^\w-.]/g, ''),
-      category: addProjCat || 'Website',
-      tags: addProjTags.length > 0 ? addProjTags : ['react'],
+      description: addProjContent || 'This is a newly created project description.',
+      techStack: addProjTags.length > 0 ? addProjTags : ['react'],
       status: addProjStatus === 'Draft' ? 'Draft' : 'Published',
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      img: addProjImg,
-      content: addProjContent || 'This is a newly created project description.'
+      image: addProjImg,
+      liveUrl: 'https://github.com',
+      githubUrl: 'https://github.com'
     };
 
-    setProjects(prev => [item, ...prev]);
-    
-    // Reset
-    setAddProjTitle('');
-    setAddProjSlug('');
-    setAddProjCat('');
-    setAddProjContent('');
-    setAddProjTags([]);
-    setAddProjStatus('No Select');
-
-    setActiveMenu('all-projects');
+    try {
+      const response = await adminFetch('/api/projects', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        await fetchProjects();
+        // Reset
+        setAddProjTitle('');
+        setAddProjSlug('');
+        setAddProjCat('');
+        setAddProjContent('');
+        setAddProjTags([]);
+        setAddProjStatus('No Select');
+        setActiveMenu('all-projects');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to create project');
+      }
+    } catch (err) {
+      console.error('Failed to create project:', err);
+    }
   };
 
   const handleStartProjectEdit = (id: string) => {
@@ -636,29 +565,37 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
     setActiveMenu('edit-project');
   };
 
-  const handleSaveProjectEdit = (e: React.FormEvent) => {
+  const handleSaveProjectEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProjectId) return;
 
-    setProjects(prev =>
-      prev.map(p =>
-        p.id === editingProjectId
-          ? {
-              ...p,
-              title: editProjTitle,
-              slug: editProjSlug,
-              category: editProjCat,
-              content: editProjContent,
-              tags: editProjTags,
-              status: editProjStatus,
-              img: editProjImg
-            }
-          : p
-      )
-    );
+    const payload = {
+      title: editProjTitle,
+      slug: editProjSlug,
+      description: editProjContent,
+      techStack: editProjTags,
+      status: editProjStatus,
+      image: editProjImg,
+      liveUrl: 'https://github.com',
+      githubUrl: 'https://github.com'
+    };
 
-    setEditingProjectId(null);
-    setActiveMenu('all-projects');
+    try {
+      const response = await adminFetch(`/api/projects/${editingProjectId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        await fetchProjects();
+        setEditingProjectId(null);
+        setActiveMenu('all-projects');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to update project');
+      }
+    } catch (err) {
+      console.error('Failed to update project:', err);
+    }
   };
 
   const handleStartProjectDelete = (id: string, title: string) => {
@@ -667,9 +604,20 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
     setActiveMenu('delete-project');
   };
 
-  const handleConfirmProjectDelete = () => {
-    if (deletingProjectId) {
-      setProjects(prev => prev.filter(p => p.id !== deletingProjectId));
+  const handleConfirmProjectDelete = async () => {
+    if (!deletingProjectId) return;
+    try {
+      const response = await adminFetch(`/api/projects/${deletingProjectId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        await fetchProjects();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to delete project');
+      }
+    } catch (err) {
+      console.error('Failed to delete project:', err);
     }
     setDeletingProjectId(null);
     setDeletingProjectTitle('');
@@ -683,35 +631,43 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
   };
 
   // Save new product
-  const handleSaveProductAdd = (e: React.FormEvent) => {
+  const handleSaveProductAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!addProdTitle.trim() || !addProdPrice.trim()) return;
 
-    const item: AdminProductItem = {
-      id: Date.now().toString(),
+    const payload = {
       title: addProdTitle,
       slug: addProdSlug || addProdTitle.trim().replace(/\s+/g, '-').replace(/[^\w-.]/g, ''),
+      description: addProdContent || 'This is a newly created product specifications.',
       price: addProdPrice.startsWith('₹') ? addProdPrice : `₹${addProdPrice}`,
-      afilateLink: addProdAfilateLink || 'https://amazon.com',
-      tags: addProdTags.length > 0 ? addProdTags : ['DESK'],
-      status: addProdStatus === 'Draft' ? 'Draft' : 'Published',
-      date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      img: addProdImg,
-      content: addProdContent || 'This is a newly created product specifications.'
+      images: [addProdImg],
+      category: addProdTags[0] || 'DESK',
+      status: addProdStatus === 'Draft' ? 'Draft' : 'Published'
     };
 
-    setShopProducts(prev => [item, ...prev]);
-    
-    // Reset fields
-    setAddProdTitle('');
-    setAddProdSlug('');
-    setAddProdContent('');
-    setAddProdTags([]);
-    setAddProdPrice('');
-    setAddProdAfilateLink('');
-    setAddProdStatus('No Select');
-
-    setActiveMenu('all-products');
+    try {
+      const response = await adminFetch('/api/products', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        await fetchProducts();
+        // Reset fields
+        setAddProdTitle('');
+        setAddProdSlug('');
+        setAddProdContent('');
+        setAddProdTags([]);
+        setAddProdPrice('');
+        setAddProdAfilateLink('');
+        setAddProdStatus('No Select');
+        setActiveMenu('all-products');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to create product');
+      }
+    } catch (err) {
+      console.error('Failed to create product:', err);
+    }
   };
 
   const handleCreatePhoto = (e: React.FormEvent) => {
@@ -731,12 +687,36 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
     setActiveMenu('all-photos');
   };
 
-  const handleDeleteBlog = (id: string) => {
-    setBlogs(prev => prev.filter(b => b.id !== id));
+  const handleDeleteBlog = async (id: string) => {
+    try {
+      const response = await adminFetch(`/api/blogs/${id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        await fetchBlogs();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to delete blog post');
+      }
+    } catch (err) {
+      console.error('Failed to delete blog:', err);
+    }
   };
 
-  const handleDeleteProduct = (id: string) => {
-    setShopProducts(prev => prev.filter(p => p.id !== id));
+  const handleDeleteProduct = async (id: string) => {
+    try {
+      const response = await adminFetch(`/api/products/${id}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        await fetchProducts();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to delete product');
+      }
+    } catch (err) {
+      console.error('Failed to delete product:', err);
+    }
   };
 
   const handleDeletePhoto = (id: string) => {
@@ -802,55 +782,69 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
   };
 
   // Save full blog updates
-  const handleSaveBlogEdit = (e: React.FormEvent) => {
+  const handleSaveBlogEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingBlogId) return;
 
-    setBlogs(prev =>
-      prev.map(b =>
-        b.id === editingBlogId
-          ? {
-              ...b,
-              title: editTitle,
-              slug: editSlug,
-              category: editCategory === 'Other' ? (customCategoryEdit.trim() || 'Other') : editCategory,
-              content: editContent,
-              tags: editTags,
-              status: editStatus
-            }
-          : b
-      )
-    );
+    const payload = {
+      title: editTitle,
+      slug: editSlug,
+      category: editCategory === 'Other' ? (customCategoryEdit.trim() || 'Other') : editCategory,
+      content: editContent,
+      tags: editTags,
+      status: editStatus
+    };
 
-    setEditingBlogId(null);
-    setCustomCategoryEdit('');
-    setActiveMenu('all-blogs');
+    try {
+      const response = await adminFetch(`/api/blogs/${editingBlogId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        await fetchBlogs();
+        setEditingBlogId(null);
+        setCustomCategoryEdit('');
+        setActiveMenu('all-blogs');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to update blog post');
+      }
+    } catch (err) {
+      console.error('Failed to update blog:', err);
+    }
   };
 
   // Save full product updates
-  const handleSaveProductEdit = (e: React.FormEvent) => {
+  const handleSaveProductEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProductId) return;
 
-    setShopProducts(prev =>
-      prev.map(p =>
-        p.id === editingProductId
-          ? {
-              ...p,
-              title: editProdTitle,
-              slug: editProdSlug,
-              content: editProdContent,
-              tags: editProdTags,
-              price: editProdPrice.startsWith('₹') ? editProdPrice : `₹${editProdPrice}`,
-              afilateLink: editProdAfilateLink,
-              status: editProdStatus
-            }
-          : p
-      )
-    );
+    const payload = {
+      title: editProdTitle,
+      slug: editProdSlug,
+      description: editProdContent,
+      price: editProdPrice.startsWith('₹') ? editProdPrice : `₹${editProdPrice}`,
+      images: [editProdImg],
+      category: editProdTags[0] || 'DESK',
+      status: editProdStatus
+    };
 
-    setEditingProductId(null);
-    setActiveMenu('all-products');
+    try {
+      const response = await adminFetch(`/api/products/${editingProductId}`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+      if (response.ok) {
+        await fetchProducts();
+        setEditingProductId(null);
+        setActiveMenu('all-products');
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to update product');
+      }
+    } catch (err) {
+      console.error('Failed to update product:', err);
+    }
   };
 
   // Category Table Counter
@@ -1260,6 +1254,7 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
             {/* Logout pill card */}
             <button
               onClick={() => {
+                localStorage.removeItem('adminToken');
                 setIsAuthenticated(false);
                 setEmail('');
                 setPassword('');
@@ -3715,6 +3710,7 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                       <button
                         type="button"
                         onClick={() => {
+                          localStorage.removeItem('adminToken');
                           setIsAuthenticated(false);
                           setEmail('');
                           setPassword('');

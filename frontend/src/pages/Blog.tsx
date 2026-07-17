@@ -1,12 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
+import { API_URL } from '../config/api';
 import blogCover1 from '../assets/blog_cover_1.png';
-import blogCover2 from '../assets/blog_cover_2.png';
-import blogCover3 from '../assets/blog_cover_3.png';
-import projectMockup1 from '../assets/project_mockup_1.png';
-import projectMockup2 from '../assets/project_mockup_2.png';
-import gallery3 from '../assets/gallery_3.png';
 import avatar from '../assets/avatar_portrait.jpg';
 
 interface BlogPost {
@@ -33,121 +29,32 @@ export default function Blog() {
 
   const postsPerPage = 10;
 
-  // Load blogs from localStorage if exists, else use defaults
-  const allPosts: BlogPost[] = (() => {
-    const saved = localStorage.getItem('blogs');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed
-        .filter((b: any) => b.status === 'Published')
-        .map((b: any) => ({
-          id: b.id,
-          tag: b.category,
-          date: b.date,
-          title: b.title,
-          description: b.content,
-          img: b.img || blogCover1
-        }));
-    }
-    return [
-      {
-        id: 'building-readifyai',
-        tag: 'Next Js',
-        date: 'June 22, 2024',
-        title: 'Building a Blog With Next.js and MDX',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: blogCover1
-      },
-      {
-        id: 'saas-landing',
-        tag: 'Next Js',
-        date: 'June 22, 2024',
-        title: 'Next.js 14.2',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: blogCover2
-      },
-      {
-        id: 'aimm-interface',
-        tag: 'React Js',
-        date: 'June 22, 2024',
-        title: 'Next.js 15 RC',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: blogCover3
-      },
-      {
-        id: 'next-13-static-blog',
-        tag: 'Next Js',
-        date: 'June 22, 2024',
-        title: 'A Step-by-Step Guide to Building a Simple Next.js 13 Blog',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: projectMockup1
-      },
-      {
-        id: 'mobile-number-login',
-        tag: 'Node Js',
-        date: 'June 22, 2024',
-        title: 'Mobile number login sign up',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: projectMockup2
-      },
-      {
-        id: 'crafting-css-animations',
-        tag: 'Css',
-        date: 'June 22, 2024',
-        title: 'Crafting Engaging CSS Animations step by step guide',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: gallery3
-      },
-      {
-        id: 'react-19-state',
-        tag: 'React Js',
-        date: 'June 22, 2024',
-        title: 'State Management in React 19 Explored',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: blogCover1
-      },
-      {
-        id: 'router-benchmarks',
-        tag: 'Next Js',
-        date: 'June 22, 2024',
-        title: 'App Router vs Pages Router Performance Benchmarks',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: blogCover2
-      },
-      {
-        id: 'flutter-mobile-arch',
-        tag: 'Flutter Dev',
-        date: 'June 22, 2024',
-        title: 'Cross-platform Mobile Architecture with Flutter',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: blogCover3
-      },
-      {
-        id: 'express-redis-cache',
-        tag: 'Node Js',
-        date: 'June 22, 2024',
-        title: 'Scaling Express.js APIs with Redis Cache mechanisms',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: projectMockup1
-      },
-      {
-        id: 'tailwind-v4-layouts',
-        tag: 'Css',
-        date: 'June 22, 2024',
-        title: 'Advanced Tailwind v4 Utility Layout architectures',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: projectMockup2
-      },
-      {
-        id: 'event-loop-js',
-        tag: 'Javascript',
-        date: 'June 22, 2024',
-        title: 'Understanding Event Loop & Microtasks in modern JS engines',
-        description: 'Audio equidem philosophi vocem, Epicure, sed quid tibi dicendum sit oblitus es. Haec et tu ita posuisti, et verba vestra sunt. Contemnit enim...',
-        img: gallery3
+  const [allPosts, setAllPosts] = useState<BlogPost[]>([]);
+
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/blogs`);
+        if (response.ok) {
+          const data = await response.json();
+          const mapped = data
+            .filter((b: any) => b.status === 'Published')
+            .map((b: any) => ({
+              id: b.slug || b._id,
+              tag: b.category,
+              date: new Date(b.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+              title: b.title,
+              description: b.content,
+              img: b.coverImage || blogCover1
+            }));
+          setAllPosts(mapped);
+        }
+      } catch (err) {
+        console.error('Failed to fetch blogs:', err);
       }
-    ];
-  })();
+    };
+    fetchBlogs();
+  }, []);
 
   // Search items database
   const searchableDataset: SearchableItem[] = [

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Phone, Mail, Square, Check, RefreshCw } from 'lucide-react';
 import { FaLinkedinIn, FaTwitter } from 'react-icons/fa';
+import { API_URL } from '../config/api';
 
 export default function Contact() {
   // Form state
@@ -28,6 +29,7 @@ export default function Contact() {
   // Form submission feedback
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
 
   const handleCheckboxChange = (key: string) => {
     setServices(prev => ({
@@ -36,33 +38,52 @@ export default function Contact() {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API request
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
-      
-      // Reset form fields
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setCompany('');
-      setPhone('');
-      setCountry('');
-      setServices({
-        webDev: false,
-        webMigration: false,
-        appDev: false,
-        ecommerce: false,
-        designSystem: false,
-        perfEval: false
+    setSubmitError('');
+
+    try {
+      const response = await fetch(`${API_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          message: description || 'No message content provided.'
+        })
       });
-      setBudget('');
-      setDescription('');
-    }, 1500);
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        // Reset form fields
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setCompany('');
+        setPhone('');
+        setCountry('');
+        setServices({
+          webDev: false,
+          webMigration: false,
+          appDev: false,
+          ecommerce: false,
+          designSystem: false,
+          perfEval: false
+        });
+        setBudget('');
+        setDescription('');
+      } else {
+        setSubmitError(data.error || 'Failed to submit form. Please verify your inputs.');
+      }
+    } catch (err) {
+      setSubmitError('Failed to connect to the server. Please check your internet connection.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -166,6 +187,18 @@ export default function Contact() {
                 <div>
                   <p className="font-bold text-white mb-0.5">Thank you!</p>
                   <p>Your message has been sent successfully. We will get back to you shortly.</p>
+                </div>
+              </div>
+            )}
+
+            {submitError && (
+              <div className="mb-6 bg-red-500/10 border border-red-500/30 p-5 rounded-2xl flex items-center space-x-3 text-red-400 text-xs sm:text-sm font-sans animate-fade-in">
+                <div className="w-8 h-8 rounded-full bg-red-500/15 flex items-center justify-center flex-shrink-0 text-red-400">
+                  <span className="font-bold font-sans">!</span>
+                </div>
+                <div>
+                  <p className="font-bold text-white mb-0.5">Submission Error</p>
+                  <p>{submitError}</p>
                 </div>
               </div>
             )}
