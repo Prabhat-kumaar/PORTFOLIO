@@ -323,3 +323,100 @@ html.light nav button svg {
   opacity: 1;
   transform: translateX(0);
 }
+
+/* ==========================================
+   Admin Panel Dark Mode Contrast Overrides
+   ========================================== */
+.dark.bg-\[\#09070F\] {
+  background-color: #09070F !important;
+}
+
+.dark header,
+.dark aside,
+.dark div.bg-white,
+.dark main div.bg-white,
+.dark form.bg-white {
+  background-color: #130F1F !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark border-slate-200,
+.dark .border-slate-200,
+.dark .border-slate-100,
+.dark .border-slate-200\/80,
+.dark .border-slate-100\/60,
+.dark .border-slate-100\/65 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark text-slate-800,
+.dark text-slate-900,
+.dark text-\[\#1B124B\],
+.dark .text-slate-800,
+.dark .text-slate-900,
+.dark .text-\[\#1B124B\],
+.dark h1,
+.dark h2,
+.dark h3 {
+  color: #f1f5f9 !important;
+}
+
+.dark .text-slate-400,
+.dark .text-slate-455,
+.dark .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+.dark .text-slate-555,
+.dark .text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+.dark input.bg-slate-50,
+.dark input.bg-white,
+.dark textarea.bg-white,
+.dark select.bg-white,
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #09070F !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #f8fafc !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #475569 !important;
+}
+
+.dark table thead tr,
+.dark table thead tr.bg-slate-50,
+.dark table thead tr.bg-\[\#D0E2FF\]\/40 {
+  background-color: #1c182a !important;
+  color: #f1f5f9 !important;
+}
+
+.dark table tbody tr {
+  border-color: rgba(255, 255, 255, 0.04) !important;
+  color: #cbd5e1 !important;
+}
+
+.dark table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+.dark .hover\:bg-slate-50:hover,
+.dark .hover\:bg-slate-100:hover,
+.dark aside button:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+.dark .bg-slate-50 {
+  background-color: #181427 !important;
+  color: #f1f5f9 !important;
+}
+
+.dark .bg-slate-100 {
+  background-color: #1c182a !important;
+}
+

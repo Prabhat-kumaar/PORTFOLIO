@@ -40,6 +40,108 @@ interface BlogComment {
   replies: BlogReply[];
 }
 
+const parseMarkdownToJSX = (text: string, copiedState: string | null, setCopied: (s: string | null) => void): React.ReactNode => {
+  if (!text) return null;
+
+  const lines = text.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentCodeBlock: string[] = [];
+  let isInsideCode = false;
+  let codeLang = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Handle Code Blocks
+    if (line.trim().startsWith('```')) {
+      if (isInsideCode) {
+        const codeText = currentCodeBlock.join('\n');
+        const blockId = `code-block-${i}`;
+        elements.push(
+          <div key={blockId} className="relative my-6 rounded-xl bg-slate-950 border border-slate-800 p-5 font-mono text-xs text-slate-300">
+            <div className="flex justify-between items-center mb-3 text-slate-500 border-b border-slate-900 pb-2">
+              <span className="capitalize">{codeLang || 'Code'}</span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(codeText);
+                  setCopied(blockId);
+                  setTimeout(() => setCopied(null), 2000);
+                }}
+                className="flex items-center space-x-1.5 px-2 py-1 rounded bg-slate-950 hover:bg-slate-850 hover:text-white transition-all text-[11px] cursor-pointer"
+              >
+                {copiedState === blockId ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-green-500" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy code</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <pre className="overflow-x-auto"><code>{codeText}</code></pre>
+          </div>
+        );
+        currentCodeBlock = [];
+        isInsideCode = false;
+      } else {
+        isInsideCode = true;
+        codeLang = line.trim().replace('```', '');
+      }
+      continue;
+    }
+
+    if (isInsideCode) {
+      currentCodeBlock.push(line);
+      continue;
+    }
+
+    // Handle Headings
+    if (line.startsWith('# ')) {
+      elements.push(<h1 key={i} className="text-2xl sm:text-3xl font-extrabold text-white mt-8 mb-4">{line.replace('# ', '')}</h1>);
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      elements.push(<h2 key={i} className="text-xl sm:text-2xl font-bold text-white mt-6 mb-3">{line.replace('## ', '')}</h2>);
+      continue;
+    }
+    if (line.startsWith('### ')) {
+      elements.push(<h3 key={i} className="text-lg sm:text-xl font-bold text-white mt-5 mb-2">{line.replace('### ', '')}</h3>);
+      continue;
+    }
+
+    // Handle Lists
+    if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+      elements.push(
+        <ul key={i} className="list-disc pl-6 space-y-1 my-3 text-slate-300">
+          <li>{line.replace(/^[\s-*-]+/, '')}</li>
+        </ul>
+      );
+      continue;
+    }
+    if (/^\d+\.\s/.test(line.trim())) {
+      elements.push(
+        <ol key={i} className="list-decimal pl-6 space-y-1 my-3 text-slate-300">
+          <li>{line.replace(/^\d+\.\s/, '')}</li>
+        </ol>
+      );
+      continue;
+    }
+
+    // Handle standard paragraph text or empty space
+    if (line.trim() === '') {
+      elements.push(<div key={i} className="h-2" />);
+    } else {
+      elements.push(<p key={i} className="text-slate-300 leading-relaxed my-3">{line}</p>);
+    }
+  }
+
+  return <>{elements}</>;
+};
+
 export default function BlogDetail() {
   const { id } = useParams<{ id: string }>();
   const [searchQuery, setSearchQuery] = useState('');
@@ -176,6 +278,8 @@ export default function BlogDetail() {
     e.preventDefault();
     if (!formName.trim() || !formContent.trim() || !id) return;
 
+    // TODO: If a dynamic database comments feature is added, sanitize formContent with DOMPurify
+    // to prevent XSS vulnerability before rendering back to other users.
     const newComment: BlogComment = {
       id: Date.now().toString(),
       author: formName,
@@ -540,8 +644,8 @@ const doSomething = () => {
           img: found.img || blogCover1,
           tags: found.tags || [],
           contentHtml: (
-            <div className="space-y-4 whitespace-pre-line text-slate-300 leading-relaxed font-sans">
-              {found.content}
+            <div className="space-y-4 text-slate-300 leading-relaxed font-sans text-left">
+              {parseMarkdownToJSX(found.content, copiedCode, setCopiedCode)}
             </div>
           )
         };

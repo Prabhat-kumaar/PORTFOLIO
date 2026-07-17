@@ -26,7 +26,9 @@ import {
   Image as ImageFileIcon,
   Type,
   Layout,
-  Eye
+  Eye,
+  Sun,
+  Moon
 } from 'lucide-react';
 import blogCover1 from '../assets/blog_cover_1.png';
 import blogCover2 from '../assets/blog_cover_2.png';
@@ -96,6 +98,7 @@ export default function Admin() {
   const [email, setEmail] = useState('prabhatyadav.dbg@gmail.com');
   const [password, setPassword] = useState('prabhat');
   const [loginError, setLoginError] = useState('');
+  const [isAdminDark, setIsAdminDark] = useState(() => localStorage.getItem('adminTheme') === 'dark');
 
   // Sidebar Layout Navigation state
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -137,6 +140,7 @@ export default function Admin() {
   const [addTags, setAddTags] = useState<string[]>([]);
   const [addStatus, setAddStatus] = useState<string>('No Select');
   const [addImg] = useState(blogCover1);
+  const [customCategoryAdd, setCustomCategoryAdd] = useState('');
 
   // Edit Blog Form State
   const [editTitle, setEditTitle] = useState('');
@@ -146,6 +150,7 @@ export default function Admin() {
   const [editTags, setEditTags] = useState<string[]>([]);
   const [editStatus, setEditStatus] = useState<'Published' | 'Draft'>('Published');
   const [editImg] = useState(blogCover2);
+  const [customCategoryEdit, setCustomCategoryEdit] = useState('');
 
   // Add Product Form State
   const [addProdTitle, setAddProdTitle] = useState('');
@@ -397,6 +402,10 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
 
   // Sync to localStorage
   useEffect(() => {
+    localStorage.setItem('adminTheme', isAdminDark ? 'dark' : 'light');
+  }, [isAdminDark]);
+
+  useEffect(() => {
     localStorage.setItem('blogs', JSON.stringify(blogs));
   }, [blogs]);
 
@@ -560,7 +569,7 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
       id: Date.now().toString(),
       title: addTitle,
       slug: addSlug || addTitle.trim().replace(/\s+/g, '-').replace(/[^\w-.]/g, ''),
-      category: addCategory || 'Next Js',
+      category: addCategory === 'Other' ? (customCategoryAdd.trim() || 'Other') : (addCategory || 'Next Js'),
       tags: addTags.length > 0 ? addTags : ['javascript'],
       status: addStatus === 'Draft' ? 'Draft' : 'Published',
       date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
@@ -574,6 +583,7 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
     setAddTitle('');
     setAddSlug('');
     setAddCategory('');
+    setCustomCategoryAdd('');
     setAddContent('');
     setAddTags([]);
     setAddStatus('No Select');
@@ -803,7 +813,7 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
               ...b,
               title: editTitle,
               slug: editSlug,
-              category: editCategory,
+              category: editCategory === 'Other' ? (customCategoryEdit.trim() || 'Other') : editCategory,
               content: editContent,
               tags: editTags,
               status: editStatus
@@ -813,6 +823,7 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
     );
 
     setEditingBlogId(null);
+    setCustomCategoryEdit('');
     setActiveMenu('all-blogs');
   };
 
@@ -912,18 +923,30 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
   // 1. LOGIN INTERFACE
   if (!isAuthenticated) {
     return (
-      <div className="bg-[#F8F9FB] min-h-screen flex flex-col font-sans text-slate-800 antialiased">
-        <header className="bg-white border-b border-slate-200/80 px-6 py-4 flex items-center justify-between shadow-sm">
+      <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 antialiased text-left ${isAdminDark ? 'dark bg-[#09070F] text-slate-100' : 'bg-[#F8F9FB] text-slate-800'}`}>
+        <header className={`border-b px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-30 transition-colors duration-300 ${isAdminDark ? 'bg-[#130F1F] border-slate-800/80 shadow-neon-purple/5' : 'bg-white border-slate-200/80'}`}>
           <div className="flex items-center space-x-2">
-            <span className="text-xl font-extrabold tracking-tight text-slate-900 font-display">
-              <span className="text-rose-500 mr-0.5">▲</span>ADMIN
+            <span className="text-xl font-extrabold tracking-tight font-display">
+              <span className="text-rose-500 mr-0.5 animate-pulse">▲</span>
+              <span className={isAdminDark ? 'text-white' : 'text-slate-900'}>ADMIN</span>
             </span>
           </div>
           <div className="flex items-center space-x-6">
-            <Maximize className="w-5 h-5 text-slate-400 cursor-pointer" />
+            {/* Sun/Moon Toggle in Login screen */}
+            <button
+              onClick={() => setIsAdminDark(!isAdminDark)}
+              className={`relative p-2 rounded-xl transition-all duration-350 cursor-pointer overflow-hidden ${isAdminDark ? 'bg-slate-800 hover:bg-slate-700 text-sky-400' : 'bg-slate-100 hover:bg-slate-200 text-amber-500'}`}
+              title={isAdminDark ? "Switch to Day Mode" : "Switch to Night Mode"}
+            >
+              <div className="relative w-5 h-5 flex items-center justify-center">
+                <Sun className={`absolute w-5 h-5 transition-all duration-500 transform ${isAdminDark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`} />
+                <Moon className={`absolute w-5 h-5 transition-all duration-500 transform ${isAdminDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`} />
+              </div>
+            </button>
+            <Maximize className={`w-5 h-5 cursor-pointer hover:opacity-85 ${isAdminDark ? 'text-slate-300' : 'text-slate-400'}`} />
             <div className="relative">
-              <Bell className="w-5 h-5 text-slate-400 cursor-pointer" />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-white block" />
+              <Bell className={`w-5 h-5 cursor-pointer hover:opacity-85 ${isAdminDark ? 'text-slate-300' : 'text-slate-400'}`} />
+              <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 block ${isAdminDark ? 'border-slate-900' : 'border-white'}`} />
             </div>
             <div className="w-9 h-9 rounded-full p-[2px] bg-gradient-to-tr from-pink-500 via-purple-400 to-amber-400 flex items-center justify-center">
               <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border border-white">
@@ -940,7 +963,9 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
             </div>
           )}
 
-          <div className="bg-white rounded-[2rem] shadow-xl p-8 sm:p-10 max-w-sm w-full text-center border border-slate-100/65 min-h-[360px] flex flex-col justify-center">
+          <div className={`rounded-[2rem] shadow-xl p-8 sm:p-10 max-w-sm w-full text-center border min-h-[360px] flex flex-col justify-center transition-colors duration-300 ${
+            isAdminDark ? 'bg-[#130F1F] border-slate-800/80 shadow-neon-purple/5' : 'bg-white border-slate-100/65'
+          }`}>
             {isLoggingIn ? (
               <div className="space-y-4 py-8 flex flex-col items-center justify-center">
                 <h2 className="text-2xl font-extrabold text-[#0090D9] tracking-tight mb-4">Sign In</h2>
@@ -948,7 +973,7 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                   <div className="w-12 h-12 rounded-full border-4 border-slate-100 border-t-cyan-400 animate-spin" />
                   <div className="absolute w-2.5 h-2.5 bg-cyan-400 rounded-full" />
                 </div>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider pt-4">Checking...</p>
+                <p className="text-xs text-slate-555 dark:text-slate-400 font-bold uppercase tracking-wider pt-4">Checking...</p>
               </div>
             ) : (
               <>
@@ -960,7 +985,9 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                     placeholder="youtube@vbmcoder.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-white text-slate-800 text-sm px-5 py-4 rounded-2xl border-2 border-cyan-400/90 focus:outline-none"
+                    className={`w-full text-sm px-5 py-4 rounded-2xl border-2 focus:outline-none transition-colors duration-300 ${
+                      isAdminDark ? 'bg-[#09070F] text-white border-slate-800 focus:border-cyan-400' : 'bg-white text-slate-800 border-cyan-400/90'
+                    }`}
                   />
                   <input
                     type="password"
@@ -968,13 +995,15 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-white text-slate-800 text-sm px-5 py-4 rounded-2xl border border-slate-200 focus:outline-none focus:cyan-400 shadow-inner"
+                    className={`w-full text-sm px-5 py-4 rounded-2xl border focus:outline-none transition-colors duration-300 ${
+                      isAdminDark ? 'bg-[#09070F] text-white border-slate-800 focus:border-cyan-400' : 'bg-white text-slate-800 border-slate-200'
+                    }`}
                   />
                   <button type="submit" className="w-full py-4 bg-[#0090D9] hover:bg-[#0080c2] text-white font-extrabold text-sm uppercase tracking-wider rounded-2xl cursor-pointer">
                     Login
                   </button>
                   <p className="text-[11px] text-[#0090D9] pt-2">
-                    <a href="#agreement" className="hover:underline font-semibold">Learn Admin licence agreement</a>
+                    <a href="#agreement" className="hover:underline font-semibold text-[#0090D9] dark:text-cyan-400">Learn Admin licence agreement</a>
                   </p>
                 </form>
               </>
@@ -983,7 +1012,7 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
 
           {!isLoggingIn && (
             <div className="mt-16 text-center animate-pulse">
-              <h1 className="text-4xl sm:text-6xl font-display font-extrabold text-[#374567]/90 tracking-tight">Password: vbmcoder</h1>
+              <h1 className={`text-4xl sm:text-6xl font-display font-extrabold tracking-tight ${isAdminDark ? 'text-slate-400/90' : 'text-[#374567]/90'}`}>Password: vbmcoder</h1>
             </div>
           )}
         </main>
@@ -993,28 +1022,41 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
 
   // 2. DASHBOARD INTERFACE
   return (
-    <div className="bg-[#F8F9FB] min-h-screen flex flex-col font-sans text-slate-800 antialiased text-left">
+    <div className={`min-h-screen flex flex-col font-sans transition-colors duration-300 antialiased text-left ${isAdminDark ? 'dark bg-[#09070F] text-slate-100' : 'bg-[#F8F9FB] text-slate-800'}`}>
       
       {/* Top Navigation Bar */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-30">
+      <header className={`border-b px-6 py-4 flex items-center justify-between shadow-sm sticky top-0 z-30 transition-colors duration-300 ${isAdminDark ? 'bg-[#130F1F] border-slate-800/80 shadow-neon-purple/5' : 'bg-white border-slate-200'}`}>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-1 rounded-md hover:bg-slate-100 transition-colors text-slate-500"
+            className={`p-1 rounded-md transition-colors cursor-pointer ${isAdminDark ? 'hover:bg-slate-800/80 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
             aria-label="Toggle Sidebar"
           >
-            <Menu className="w-5 h-5 text-[#1B124B]" />
+            <Menu className={`w-5 h-5 ${isAdminDark ? 'text-slate-200' : 'text-[#1B124B]'}`} />
           </button>
-          <span className="text-xl font-extrabold tracking-tight text-slate-900 font-display">
-            <span className="text-rose-500 mr-0.5">▲</span>ADMIN
+          <span className="text-xl font-extrabold tracking-tight font-display">
+            <span className="text-rose-500 mr-0.5 animate-pulse">▲</span>
+            <span className={isAdminDark ? 'text-white' : 'text-slate-900'}>ADMIN</span>
           </span>
         </div>
 
         <div className="flex items-center space-x-6">
-          <Maximize className="w-5 h-5 text-[#1B124B] cursor-pointer" />
+          {/* Day/Night Theme Toggle button with rich rotational transition animation */}
+          <button
+            onClick={() => setIsAdminDark(!isAdminDark)}
+            className={`relative p-2 rounded-xl transition-all duration-350 cursor-pointer overflow-hidden ${isAdminDark ? 'bg-slate-800 hover:bg-slate-700 text-sky-400' : 'bg-slate-100 hover:bg-slate-200 text-amber-500'}`}
+            title={isAdminDark ? "Switch to Day Mode" : "Switch to Night Mode"}
+          >
+            <div className="relative w-5 h-5 flex items-center justify-center">
+              <Sun className={`absolute w-5 h-5 transition-all duration-500 transform ${isAdminDark ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`} />
+              <Moon className={`absolute w-5 h-5 transition-all duration-500 transform ${isAdminDark ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'}`} />
+            </div>
+          </button>
+
+          <Maximize className={`w-5 h-5 cursor-pointer hover:opacity-85 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
           <div className="relative">
-            <Bell className="w-5 h-5 text-[#1B124B] cursor-pointer" />
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 border-white block" />
+            <Bell className={`w-5 h-5 cursor-pointer hover:opacity-85 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
+            <span className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-500 border-2 block ${isAdminDark ? 'border-slate-900' : 'border-white'}`} />
           </div>
           <div className="w-9 h-9 rounded-full p-[2px] bg-gradient-to-tr from-pink-500 via-purple-400 to-amber-400 flex items-center justify-center">
             <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden border border-white">
@@ -1029,19 +1071,19 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
         
         {/* Left Navigation Sidebar */}
         {isSidebarOpen && (
-          <aside className="w-64 bg-white border-r border-slate-200 p-6 flex flex-col justify-between flex-shrink-0 transition-all duration-305">
+          <aside className={`w-64 border-r p-6 flex flex-col justify-between flex-shrink-0 transition-colors duration-300 ${isAdminDark ? 'bg-[#130F1F] border-slate-800/80' : 'bg-white border-slate-200'}`}>
             <div className="space-y-4">
               
               {/* Dashboard Link */}
               <button
                 onClick={() => setActiveMenu('dashboard')}
-                className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-colors cursor-pointer ${
+                className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all duration-300 cursor-pointer ${
                   activeMenu === 'dashboard'
-                    ? 'bg-slate-50 text-slate-950'
-                    : 'text-[#1B124B] hover:bg-slate-50'
+                    ? (isAdminDark ? 'bg-slate-800/60 text-white' : 'bg-slate-50 text-slate-950')
+                    : (isAdminDark ? 'text-slate-300 hover:bg-slate-800/40 hover:text-white' : 'text-[#1B124B] hover:bg-slate-50')
                 }`}
               >
-                <Home className="w-4 h-4 text-[#1B124B]" />
+                <Home className={`w-4 h-4 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
                 <span>Dashboard</span>
               </button>
 
@@ -1049,10 +1091,10 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
               <div className="space-y-1">
                 <button
                   onClick={() => setIsBlogsExpanded(!isBlogsExpanded)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-extrabold text-[#1B124B] hover:bg-slate-50 transition-colors cursor-pointer"
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all duration-300 cursor-pointer ${isAdminDark ? 'text-slate-200 hover:bg-slate-800/40' : 'text-[#1B124B] hover:bg-slate-50'}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <BookOpen className="w-4 h-4 text-[#1B124B]" />
+                    <BookOpen className={`w-4 h-4 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
                     <span>Blogs</span>
                   </div>
                   {isBlogsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -1062,19 +1104,19 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                   <div className="pl-11 space-y-1 flex flex-col text-left">
                     <button
                       onClick={() => { setActiveMenu('all-blogs'); setBlogSearchQuery(''); setAdminBlogPage(1); }}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'all-blogs' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'all-blogs' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       All Blogs
                     </button>
                     <button
                       onClick={() => setActiveMenu('draft-blogs')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'draft-blogs' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'draft-blogs' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       Draft Blogs
                     </button>
                     <button
                       onClick={() => setActiveMenu('add-blog')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'add-blog' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'add-blog' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       Add Blog
                     </button>
@@ -1086,10 +1128,10 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
               <div className="space-y-1">
                 <button
                   onClick={() => setIsProjectsExpanded(!isProjectsExpanded)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-extrabold text-[#1B124B] hover:bg-slate-50 transition-colors cursor-pointer"
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all duration-300 cursor-pointer ${isAdminDark ? 'text-slate-200 hover:bg-slate-800/40' : 'text-[#1B124B] hover:bg-slate-50'}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <Layers className="w-4 h-4 text-[#1B124B]" />
+                    <Layers className={`w-4 h-4 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
                     <span>Projects</span>
                   </div>
                   {isProjectsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -1099,19 +1141,19 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                   <div className="pl-11 space-y-1 flex flex-col text-left">
                     <button
                       onClick={() => setActiveMenu('all-projects')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'all-projects' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'all-projects' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       All Projects
                     </button>
                     <button
                       onClick={() => setActiveMenu('draft-projects')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'draft-projects' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'draft-projects' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       Draft Projects
                     </button>
                     <button
                       onClick={() => setActiveMenu('add-projects')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'add-projects' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'add-projects' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       Add Projects
                     </button>
@@ -1123,10 +1165,10 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
               <div className="space-y-1">
                 <button
                   onClick={() => setIsShopsExpanded(!isShopsExpanded)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-extrabold text-[#1B124B] hover:bg-slate-50 transition-colors cursor-pointer"
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all duration-300 cursor-pointer ${isAdminDark ? 'text-slate-200 hover:bg-slate-800/40' : 'text-[#1B124B] hover:bg-slate-50'}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <ShoppingBag className="w-4 h-4 text-[#1B124B]" />
+                    <ShoppingBag className={`w-4 h-4 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
                     <span>Shops</span>
                   </div>
                   {isShopsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -1136,19 +1178,19 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                   <div className="pl-11 space-y-1 flex flex-col text-left">
                     <button
                       onClick={() => setActiveMenu('all-products')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'all-products' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'all-products' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       All Products
                     </button>
                     <button
                       onClick={() => setActiveMenu('draft-products')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'draft-products' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'draft-products' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       Draft Products
                     </button>
                     <button
                       onClick={() => setActiveMenu('add-product')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'add-product' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'add-product' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       Add Product
                     </button>
@@ -1160,10 +1202,10 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
               <div className="space-y-1">
                 <button
                   onClick={() => setIsGalleryExpanded(!isGalleryExpanded)}
-                  className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-extrabold text-[#1B124B] hover:bg-slate-50 transition-colors cursor-pointer"
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl text-sm font-extrabold transition-all duration-300 cursor-pointer ${isAdminDark ? 'text-slate-200 hover:bg-slate-800/40' : 'text-[#1B124B] hover:bg-slate-50'}`}
                 >
                   <div className="flex items-center space-x-3">
-                    <ImageIcon className="w-4 h-4 text-[#1B124B]" />
+                    <ImageIcon className={`w-4 h-4 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
                     <span>Gallery</span>
                   </div>
                   {isGalleryExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -1173,13 +1215,13 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                   <div className="pl-11 space-y-1 flex flex-col text-left">
                     <button
                       onClick={() => setActiveMenu('all-photos')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'all-photos' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'all-photos' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       All Photos
                     </button>
                     <button
                       onClick={() => setActiveMenu('add-photos')}
-                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'add-photos' ? 'text-cyberPurple font-extrabold' : 'text-[#1B124B]/70 hover:text-[#1B124B]'}`}
+                      className={`py-2 text-xs font-bold cursor-pointer ${activeMenu === 'add-photos' ? 'text-cyberPurple font-extrabold' : (isAdminDark ? 'text-slate-400 hover:text-white' : 'text-[#1B124B]/70 hover:text-[#1B124B]')}`}
                     >
                       Add Photos
                     </button>
@@ -1191,10 +1233,12 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
               <button
                 onClick={() => setActiveMenu('contacts')}
                 className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-colors cursor-pointer ${
-                  activeMenu === 'contacts' ? 'bg-slate-50 text-slate-950 font-extrabold' : 'text-[#1B124B] hover:bg-slate-50'
+                  activeMenu === 'contacts'
+                    ? (isAdminDark ? 'bg-slate-800/60 text-white font-extrabold' : 'bg-slate-50 text-slate-950 font-extrabold')
+                    : (isAdminDark ? 'text-slate-300 hover:bg-slate-800/40 hover:text-white' : 'text-[#1B124B] hover:bg-slate-50')
                 }`}
               >
-                <Mail className="w-4 h-4 text-[#1B124B]" />
+                <Mail className={`w-4 h-4 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
                 <span>Contacts</span>
               </button>
 
@@ -1202,10 +1246,12 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
               <button
                 onClick={() => setActiveMenu('settings')}
                 className={`w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl text-sm font-extrabold transition-colors cursor-pointer ${
-                  activeMenu === 'settings' ? 'bg-slate-50 text-slate-950 font-extrabold' : 'text-[#1B124B] hover:bg-slate-50'
+                  activeMenu === 'settings'
+                    ? (isAdminDark ? 'bg-slate-800/60 text-white font-extrabold' : 'bg-slate-50 text-slate-950 font-extrabold')
+                    : (isAdminDark ? 'text-slate-300 hover:bg-slate-800/40 hover:text-white' : 'text-[#1B124B] hover:bg-slate-50')
                 }`}
               >
-                <Settings className="w-4 h-4 text-[#1B124B]" />
+                <Settings className={`w-4 h-4 ${isAdminDark ? 'text-slate-300' : 'text-[#1B124B]'}`} />
                 <span>Settings</span>
               </button>
 
@@ -1632,12 +1678,24 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                     <option value="Next Js">Next Js</option>
                     <option value="Flutter Dev">Flutter Dev</option>
                     <option value="Tailwind CSS">Tailwind CSS</option>
+                    <option value="Other">Other (Write Custom Category)</option>
                   </select>
+                  {addCategory === 'Other' && (
+                    <div className="pt-2">
+                      <input
+                        type="text"
+                        placeholder="Write custom category..."
+                        value={customCategoryAdd}
+                        onChange={(e) => setCustomCategoryAdd(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm focus:outline-none focus:border-cyberPurple font-extrabold text-slate-800 placeholder-slate-400"
+                      />
+                    </div>
+                  )}
                   <div className="pt-2 text-xs text-slate-555 flex items-center space-x-1.5">
                     <span className="font-extrabold text-slate-800">Selected: </span>
                     {addCategory && (
                       <span className="px-2.5 py-1 rounded bg-slate-100 border border-slate-200 text-slate-700 font-extrabold capitalize">
-                        {addCategory}
+                        {addCategory === 'Other' && customCategoryAdd ? customCategoryAdd : addCategory}
                       </span>
                     )}
                   </div>
@@ -1856,11 +1914,23 @@ Next.js has become one of the most popular React frameworks of today. Coupled wi
                     <option value="Next Js">Next Js</option>
                     <option value="Flutter Dev">Flutter Dev</option>
                     <option value="Tailwind CSS">Tailwind CSS</option>
+                    <option value="Other">Other (Write Custom Category)</option>
                   </select>
+                  {editCategory === 'Other' && (
+                    <div className="pt-2">
+                      <input
+                        type="text"
+                        placeholder="Write custom category..."
+                        value={customCategoryEdit}
+                        onChange={(e) => setCustomCategoryEdit(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs sm:text-sm focus:outline-none focus:border-cyberPurple font-extrabold text-slate-800 placeholder-slate-400"
+                      />
+                    </div>
+                  )}
                   <div className="pt-2 flex items-center space-x-1.5 text-xs text-slate-500">
                     <span className="font-extrabold text-slate-800">Selected:</span>
                     <span className="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-extrabold">
-                      {editCategory}
+                      {editCategory === 'Other' && customCategoryEdit ? customCategoryEdit : editCategory}
                     </span>
                   </div>
                 </div>
